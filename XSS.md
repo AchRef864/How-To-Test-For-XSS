@@ -78,15 +78,15 @@ In principle, a website is vulnerable to DOM-based cross-site scripting if there
 ##### jQuery Vulnerabilities
 
 // Attribute manipulation
-$('#backLink').attr("href", location.search);
-// Exploit: ?returnUrl=javascript:alert(document.domain)
+"$('#backLink').attr("href", location.search);"
+// Exploit: "?returnUrl=javascript:alert(document.domain)"
 
 // Selector injection
-$(window).on('hashchange', function() {
-    $(location.hash).scrollIntoView();
-});
+"$(window).on('hashchange', function() {"
+"    $(location.hash).scrollIntoView();"
+"});"
 // Exploit via iframe:
-<iframe src="https://vulnerable.com#" onload="this.src+='<img src=1 onerror=alert(1)>'">
+"<iframe src="https://vulnerable.com#" onload="this.src+='<img src=1 onerror=alert(1)>'">"
 
 ##### AngularJS Vulnerabilities
 
