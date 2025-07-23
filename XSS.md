@@ -6,6 +6,43 @@ Advanced XSS Testing Manual
 
 ## 1\. DOM-Based XSS Deep Dive
 
+## Which Sinks Can Lead to DOM-XSS Vulnerabilities?
+
+The following are some of the main sinks that can lead to **DOM-based XSS** vulnerabilities:
+
+- `document.write()`
+- `document.writeln()`
+- `document.domain`
+- `element.innerHTML`
+- `element.outerHTML`
+- `element.insertAdjacentHTML`
+- `element.onevent` *(e.g., `onclick`, `onerror`, etc.)*
+
+### jQuery Sinks That Can Lead to DOM-XSS:
+
+The following jQuery functions are also **sinks** that can introduce DOM-XSS vulnerabilities:
+
+- `add()`
+- `after()`
+- `append()`
+- `animate()`
+- `insertAfter()`
+- `insertBefore()`
+- `before()`
+- `html()`
+- `prepend()`
+- `replaceAll()`
+- `replaceWith()`
+- `wrap()`
+- `wrapInner()`
+- `wrapAll()`
+- `has()`
+- `constructor()`
+- `init()`
+- `index()`
+- `jQuery.parseHTML()`
+- `$.parseHTML()`
+
 ### 1.1 Methodology
 
 1.  **Source Identification**
@@ -239,41 +276,3 @@ https://owasp.org/www-community/xss-filter-evasion-cheatsheet
 **Legal Note:** Always obtain proper authorization before testing. This guide is for educational purposes only.
 
 Last updated: 2023-11-15 | Based on OWASP Top 10 2021
-
-
-## Which Sinks Can Lead to DOM-XSS Vulnerabilities?
-
-The following are some of the main sinks that can lead to **DOM-based XSS** vulnerabilities:
-
-- `document.write()`
-- `document.writeln()`
-- `document.domain`
-- `element.innerHTML`
-- `element.outerHTML`
-- `element.insertAdjacentHTML`
-- `element.onevent` *(e.g., `onclick`, `onerror`, etc.)*
-
-### jQuery Sinks That Can Lead to DOM-XSS:
-
-The following jQuery functions are also **sinks** that can introduce DOM-XSS vulnerabilities:
-
-- `add()`
-- `after()`
-- `append()`
-- `animate()`
-- `insertAfter()`
-- `insertBefore()`
-- `before()`
-- `html()`
-- `prepend()`
-- `replaceAll()`
-- `replaceWith()`
-- `wrap()`
-- `wrapInner()`
-- `wrapAll()`
-- `has()`
-- `constructor()`
-- `init()`
-- `index()`
-- `jQuery.parseHTML()`
-- `$.parseHTML()`
