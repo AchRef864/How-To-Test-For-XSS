@@ -93,6 +93,7 @@ The following jQuery functions are also **sinks** that can introduce DOM-XSS vul
 <div ng-app>
   {{constructor.constructor('alert(1)')()}}
 </div>
+```
 
 #### jQuery XSS
 
